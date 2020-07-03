@@ -1,0 +1,6 @@
+{
+  "database": "mysql",
+  "username": "root",
+  "password": "root",
+  "options": { "host": "localhost", "dialect": "mysql" }
+}

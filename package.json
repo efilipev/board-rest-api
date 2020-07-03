@@ -1,0 +1,24 @@
+{
+  "name": "board-rest-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Eugene Filipev",
+  "devDependencies": {
+    "ava": "^3.9.0",
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "jose": "^1.27.2",
+    "mysql2": "^2.1.0",
+    "nconf": "^0.10.0",
+    "sequelize": "^6.2.4"
+  },
+  "license": "ISC"
+}
