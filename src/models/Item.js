@@ -1,16 +1,16 @@
 const { Sequelize, DataTypes, Model } = require('sequelize');
-const User = require('User');
+const User = require('src/models/User');
 
 class Item extends Model{}
 
 Item.init(
     {
         created_at: {dataType: DataTypes.DATE, allowNull: false},
-        title: { dataType: String, allowNull: false },
-        price: { dataType: String, allowNull: false },
-        image: { dataType: String, allowNull: true},
-        user_id: { dataType: String, allowNull: false},
-        user: { dataType: User, allowNull: false}
+        title: { dataType: DataTypes.STRING, allowNull: false },
+        price: { dataType: DataTypes.NUMBER, allowNull: false },
+        image: { dataType: DataTypes.STRING, allowNull: true},
+        user_id: { dataType: DataTypes.STRING, allowNull: false},
+        user: { dataType: 'User', allowNull: false}
     },
     {
         sequelize,
@@ -18,5 +18,7 @@ Item.init(
         modelName: Item
     }
 );
+
+Item.hasOne(User);
 
 module.exports = Item;
