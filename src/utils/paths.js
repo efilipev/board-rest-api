@@ -9,10 +9,10 @@ const searchUsers = '/api/user';
 
 const createItem = '/api/item';
 const getItem = '/api/item/:id';
-const searchItems = '/api/item';
+const searchItems = '/api/item?title?&price?&order_by&order_type';
 const deleteItem = '/api/item/:id';
 const updateItem = '/api/item/:id';
-const uploadItemImage = '/api/item/image';
+const uploadItemImage = '/api/item/:id/image';
 const removeItemImage = '/api/item/:id/image';
 
 module.exports = {

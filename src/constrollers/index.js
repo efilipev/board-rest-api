@@ -1,9 +1,9 @@
 const ItemsController = require('../constrollers/ItemsController');
 const UserController = require('../constrollers/UserContoller');
-const MainRouter = require('../constrollers/MainController');
+const MainController = require('../constrollers/MainController');
 
 module.exports = {
-    MainRouter,
+    MainController,
     UserController,
     ItemsController
 };

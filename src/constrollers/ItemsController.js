@@ -1,31 +1,69 @@
 const express = require('express');
 const { ItemService } = require('../services');
-const { NotFoundException, UnsupportedException, ForbiddenException, UnauthorizedException } = require('../exceptions');
-const { getItem, updateItem, deleteItem, createItem, uploadItemImage, removeItemImage} = require('../utils/paths');
+const { NotFoundException,
+    UnsupportedException,
+    ForbiddenException,
+    UnauthorizedException } = require('../exceptions');
+const { getItem,
+    updateItem,
+    deleteItem,
+    createItem,
+    uploadItemImage,
+    removeItemImage,
+    searchItems } = require('../utils/paths');
 
 const router = express.Router();
+const service = new ItemService();
 
 router.get( getItem, (req, res) => {
-    const itemId = req.params.id;
-    if ( itemId ) {
-        const item =  ItemService.findItemById( itemId );
-        res.status( 200 ).json( item );
+    const { id } = req.params;
+    if ( id ) {
+        service.getItemById( id ).then( item => {
+            res.status( 200 ).json( item );
+        });
     } else {
         throw new NotFoundException();
     }
 });
 
-//TODO
-router.put( updateItem, (req, res) => {});
+router.put( updateItem, (req, res) => {
+    const auth = trimBearer(req.header('Authorization'));
+    if ( auth === undefined ) {
+        throw new UnauthorizedException();
+    }
+    const { title, price, id} = req.params;
+    service.updateItem( title, price, id ).then( result => {
+        if ( result === 1 ) {
+            res.status(200).toJSON( {} );
+        } else {
+            throw new NotFoundException();
+        }
+    })
+});
 
-//TODO
-router.delete( deleteItem, (req, res) => {});
+router.delete( deleteItem, (req, res) => {
+    const auth = trimBearer(req.header('Authorization'));
+    if ( auth === undefined ) {
+        throw new UnauthorizedException();
+    }
+    const { id } = req.params;
+    if ( id ) {
+        service.deleteItem( id ).then( result => {
+            if (result[0] === 1) {
+                res.status(200);
+            } else {
+                throw new NotFoundException();
+            }
+        })
+    }
+});
 
 router.post( createItem, (req, res) => {
     const item = req.body;
     if ( item ) {
-        const item = ItemService.save( item );
-        res.status( 200 ).json( item );
+        service.create( item ).then( item => {
+            res.status( 200 ).json( item );
+        });
     } else {
         if ( item === null ) {
             throw new ForbiddenException();
@@ -39,10 +77,58 @@ router.post( createItem, (req, res) => {
     }
 });
 
-//TODO
-router.post( uploadItemImage, (req, res) => {});
+router.post( uploadItemImage, (req, res) => {
+    const auth = trimBearer(req.header('Authorization'));
+    if ( auth === undefined ) {
+        throw UnauthorizedException();
+    }
+    const { id } = req.params;
+    if ( typeof id === "undefined" ) {
+        throw new ForbiddenException();
+    }
+    service.uploadItemImage(req.body.file, id).then( result => {
+        if (result[0] === 1) {
+            service.getItemById( id ).then( item => {
+                res.status(200).json(item);
+            });
+        } else {
+            throw new UnsupportedException('message', `The FIle ${ req.body.file } is to big!!!`);
+        }
+    });
+});
 
-//TODO
-router.delete( removeItemImage, (req, res) => {});
+router.delete( removeItemImage, (req, res) => {
+    const auth = trimBearer(req.header('Authorization'));
+    if ( auth === undefined ) {
+        throw new UnauthorizedException();
+    }
+    const { id } = req.params;
+    if ( !id ) {
+        throw new ForbiddenException();
+    }
+    service.removeItemImage( id ).then( result => {
+        if ( result !== null ) {
+            res.status(200);
+        } else {
+            throw new NotFoundException();
+        }
+    })
+});
+
+router.get( searchItems, ( req, res ) => {
+    const auth = trimBearer(req.header('Authorization'));
+    if ( auth === undefined ) {
+        throw new UnauthorizedException();
+    }
+    const { title, price } = res.params;
+    service.searchItems( title, price).then( result => {
+        res.status(200).toJSON( [ result ]);
+    })
+});
+
+const trimBearer = authorization => {
+    if ( authorization === undefined ) return;
+    return authorization.slice(6);
+};
 
 module.exports = router;

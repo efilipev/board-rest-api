@@ -1,12 +1,12 @@
 const jose = require('jose');
 
 const jwtTokenService = {
-    generateToken( userName ) {
-        return jose.JWT.sign( userName , jose.JWK.asKey( {
+    createToken( payload ) {
+        return jose.JWT.sign( payload , jose.JWK.asKey( {
             kty: 'oct',
             k: 'hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg'
         }), {
-            audience: [ userName ],
+            audience: [ 'Name', 'id' ],
             issuer: 'https://ravenous150@gmail.com',
             expiresIn: '2 hours',
             header: {
@@ -15,8 +15,11 @@ const jwtTokenService = {
         });
     },
 
-    verifyToken() {
-
+    decodeToken( token ) {
+        return jose.JWT.decode( token, jose.JWK.asKey( {
+            kty: 'oct',
+            k: 'hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg'
+        }));
     }
 };
 

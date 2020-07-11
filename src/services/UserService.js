@@ -1,28 +1,58 @@
-//const BaseService = require('../services/BaseService');
+const BaseService = require('../services/BaseService');
 const BcryptPasswordService = require('../services/BcryptPasswordService');
 const { User } = require('../db/models');
 
-const UserService = {
+function UserService() {
 
-    async create( user ) {
-        user.password = BcryptPasswordService.generate( user.password );
-        return await User.create( user );
-    },
-
-    async findUserById( id ) {
-       return  await User.findOne({
-            where: id
+    this.create = ( user ) => {
+        BcryptPasswordService.generate( user.password ).then( hash => {
+            user.password = hash;
+            User.create( Object.assign( {}, user) ).then( savedUser => savedUser.toJSON() );
         });
-    },
+    };
 
-    async findUserByEmail() {},
+    this.findUserById = ( id ) => {
+        return User.findOne({
+            where: {
+                id: id
+            }
+        }).then(user => user.dataValues);
+    };
 
-    async findUserByName( name ) {},
+    this.findUserByEmail = ( email ) =>{
+        return User.findOne( {
+            where: {
+                email: email
+            }
+        }).then( user => user.dataValues );
+    };
 
-    async updateUser(){},
+    this.findUserByName = ( name ) =>{
+        return User.findOne( {
+            where: {
+                name: name
+            }
+        }).then( user => user.dataValues);
+    };
 
-    async searchUser(){}
+    this.updateUser = ( user ) => {
+        return User.update( user, {
+            where: {
+                id: user.id
+            }
+        } ).then( user => user.dataValues);
+    };
 
-};
+    this.searchUser = ( name, email ) => {
+        return User.findOne( { name: name, email: email}, {
+            where: {
+                name: name,
+                email: email
+            }
+        }).then( user => user.dataValues );
+    }
+}
+
+UserService.prototype = BaseService.prototype;
 
 module.exports = UserService;
