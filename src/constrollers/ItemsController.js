@@ -28,13 +28,19 @@ router.get( getItem, (req, res) => {
 
 router.put( updateItem, (req, res) => {
     const auth = trimBearer(req.header('Authorization'));
-    if ( auth === undefined ) {
+    if ( !auth ) {
         throw new UnauthorizedException();
     }
     const { title, price, id} = req.params;
+    if ( !id ) {
+        throw new ForbiddenException('Item id is required');
+    }
+    if ( !title || !price ) {
+        throw new ForbiddenException('Item title, price must be not null')
+    }
     service.updateItem( title, price, id ).then( result => {
         if ( result === 1 ) {
-            res.status(200).toJSON( {} );
+            res.status(200).json( {} );
         } else {
             throw new NotFoundException();
         }
@@ -43,47 +49,46 @@ router.put( updateItem, (req, res) => {
 
 router.delete( deleteItem, (req, res) => {
     const auth = trimBearer(req.header('Authorization'));
-    if ( auth === undefined ) {
+    if ( !auth ) {
         throw new UnauthorizedException();
     }
     const { id } = req.params;
-    if ( id ) {
-        service.deleteItem( id ).then( result => {
-            if (result[0] === 1) {
-                res.status(200);
-            } else {
-                throw new NotFoundException();
-            }
-        })
-    }
+    service.deleteItem( id ).then( result => {
+        if (result === 1) {
+            res.status(200).json( {} );
+        } else {
+            throw new NotFoundException();
+        }
+    });
 });
 
 router.post( createItem, (req, res) => {
-    const item = req.body;
-    if ( item ) {
-        service.create( item ).then( item => {
-            res.status( 200 ).json( item );
-        });
-    } else {
-        if ( item === null ) {
-            throw new ForbiddenException();
-        }
-        if ( item.title === null || item.price === null ) {
-            throw new UnsupportedException( item.field, 'Title is required');
-        }
-        if ( item.user === null) {
-            throw new UnauthorizedException();
-        }
+    const auth = trimBearer(req.header('Authorization'));
+    if ( !auth ) {
+        throw new UnauthorizedException();
     }
+    const item = req.body;
+    if ( !item ) {
+        throw new ForbiddenException();
+    }
+    if ( !item.title || !item.price ) {
+        throw new UnsupportedException( item.field, 'Title or price is required');
+    }
+    if ( !item.user_id ) {
+        throw new ForbiddenException( `user_id is required`);
+    }
+    service.create( item ).then( item => {
+        res.status( 200 ).json( item );
+    });
 });
 
 router.post( uploadItemImage, (req, res) => {
     const auth = trimBearer(req.header('Authorization'));
-    if ( auth === undefined ) {
-        throw UnauthorizedException();
+    if ( !auth ) {
+        throw new UnauthorizedException();
     }
     const { id } = req.params;
-    if ( typeof id === "undefined" ) {
+    if ( !id ) {
         throw new ForbiddenException();
     }
     service.uploadItemImage(req.body.file, id).then( result => {
@@ -99,7 +104,7 @@ router.post( uploadItemImage, (req, res) => {
 
 router.delete( removeItemImage, (req, res) => {
     const auth = trimBearer(req.header('Authorization'));
-    if ( auth === undefined ) {
+    if (!auth ) {
         throw new UnauthorizedException();
     }
     const { id } = req.params;
@@ -107,8 +112,8 @@ router.delete( removeItemImage, (req, res) => {
         throw new ForbiddenException();
     }
     service.removeItemImage( id ).then( result => {
-        if ( result !== null ) {
-            res.status(200);
+        if ( result[0] === 1 ) {
+            res.status(200).json( {} );
         } else {
             throw new NotFoundException();
         }
@@ -116,13 +121,9 @@ router.delete( removeItemImage, (req, res) => {
 });
 
 router.get( searchItems, ( req, res ) => {
-    const auth = trimBearer(req.header('Authorization'));
-    if ( auth === undefined ) {
-        throw new UnauthorizedException();
-    }
-    const { title, price } = res.params;
-    service.searchItems( title, price).then( result => {
-        res.status(200).toJSON( [ result ]);
+    const { title, user_id } = res.query;
+    service.searchItems( title, user_id ).then( result => {
+        res.status(200).json ([ result ]);
     })
 });
 

@@ -34,8 +34,8 @@ function ItemService(){
         return Item.destroy({
             where: {
                 id: id
-            }
-        }).then( succes => succes );
+            },
+        });
     };
 
     this.uploadItemImage = ( file, id ) => {
@@ -57,7 +57,7 @@ function ItemService(){
             }
         })
     };
-    this.searchItems = ( title, user_id, order_by = 'created_at' || 'price', order_type = 'DESC' || 'ASC') => {
+    this.searchItems = ( title, user_id ) => {
         return Item.findAndCountAll({
             where: {
                 title: title,
@@ -69,18 +69,11 @@ function ItemService(){
                     as: 'user'
                 }
             ],
-            order: [
+            /*order: [
                 ['order_by', order_by],
                 ['order_type', order_type]
-            ]
-        });/*.then( res => res.toJSON( {
-            id,
-            created_at,
-            title,
-            price,
-            image,
-            user_id
-        }));*/
+            ]*/
+        });
     };
 
 }
