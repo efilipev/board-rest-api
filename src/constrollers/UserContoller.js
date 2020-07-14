@@ -25,22 +25,30 @@ const trimBearer = require("../utils/http");
 const router = express.Router();
 const service = new UserService();
 
-router.post(login, (req, res) => {
+router.post(login, (req, res, next) => {
     if (Object.keys(req.body).length !== 0) {
-        if (req.body.email && req.body.password) {
-            service.findUserByEmail(req.body.email).then((user) => {
-                const token = JwtTokenService.createToken({
-                    created: new Date(),
-                    user: user.username,
-                    role: "user",
+        const user = req.body;
+        if ( user.email && user.password ) {
+            service.findUserByEmailAndPassword(user.email)
+                .then( result => {
+                    BcryptPasswordService.comparePassword(user.password, result.password)
+                        .then( (passed) => {
+                            if (passed) {
+                                const token = JwtTokenService.createToken({
+                                    created: new Date(),
+                                    id: result.id,
+                                    user: result.username,
+                                    role: "user",
+                                });
+                                res.status(200).json({ token: token });
+                            } else {
+                                next(new UnsupportedException("password", "Wrong email or password"));
+                            }
+                        });
                 });
-                res.status(200).json({ token: token });
-            });
-        } else {
-            throw new UnsupportedException("password", "Wrong email or password");
         }
     } else {
-        throw new UnsupportedException("password", "Wrong email or password");
+        next(new UnsupportedException("password", "Wrong email or password"));
     }
 });
 

@@ -4,6 +4,7 @@
     "password": "root",
     "database": "board-api",
     "host": "127.0.0.1",
+    "dialect": "mysql",
     "options": { "host": "localhost", "dialect": "mysql" }
   },
   "test": {

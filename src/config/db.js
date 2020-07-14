@@ -1,11 +1,11 @@
 const { Sequelize } = require("sequelize");
-const dbConfig = require("../config/mysql");
+const dbConfig = require("../config/config");
 
 const db = new Sequelize(
-    dbConfig.get("database"),
-    dbConfig.get("username"),
-    dbConfig.get("password"),
-    dbConfig.get("options")
+    dbConfig.development.database,
+    dbConfig.development.username,
+    dbConfig.development.password,
+    dbConfig.development.options
 );
 
 db.authenticate()

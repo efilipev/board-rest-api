@@ -4,7 +4,8 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "test": "mocha tests/**/*.js"
+    "test": "mocha tests/**/*.js",
+    "migration": "sequelize-cli db:migrate --config ./src/config/config.json --migrations-path ./src/migrations"
   },
   "keywords": [],
   "author": "Eugene Filipev",

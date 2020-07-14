@@ -1,39 +1,40 @@
 const { INTEGER, STRING } = require("sequelize");
-const db = require("../../../config/db");
 
 module.exports = {
-    schema: {
-        id: {
+  up: async (queryInterface, Sequelize) => {
+    queryInterface.createTable(
+        "users",
+        {
+          id: {
             type: INTEGER,
             primaryKey: true,
             autoIncrement: true,
-        },
-        name: {
+          },
+          name: {
             type: STRING,
             allowNull: false,
-        },
-        password: {
+          },
+          password: {
             type: STRING,
             allowNull: false,
             exclude: true,
-        },
-        email: {
+          },
+          email: {
             type: STRING,
             allowNull: false,
-        },
-        phone: {
+          },
+          phone: {
             type: STRING,
             allowNull: true,
+          },
         },
-    },
-    options: {
-        sequelize: db,
-        defaultScope: {
-            attributes: {
-                exclude: ["password"],
-            },
+        {
+          timestamps: false,
         },
-        timestamps: false,
-        modelName: "users",
+        );
     },
+
+  down: async (queryInterface, Sequelize) => {
+    queryInterface.dropTable("users");
+  },
 };

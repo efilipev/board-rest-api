@@ -1,6 +1,0 @@
-{
-  "database": "board-api",
-  "username": "board-admin",
-  "password": "root",
-  "options": { "host": "localhost", "dialect": "mysql" }
-}
