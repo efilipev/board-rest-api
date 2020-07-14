@@ -1,19 +1,19 @@
-const main = '/';
+const main = "/";
 
-const login = '/api/login';
-const register = '/api/register';
-const updateUser = '/api/me';
-const currentUser = '/api/me';
-const getUserById = '/api/user/:id';
-const searchUsers = '/api/user';
+const login = "/api/login";
+const register = "/api/register";
+const updateUser = "/api/me";
+const currentUser = "/api/me";
+const getUserById = "/api/user/:id";
+const searchUsers = "/api/user";
 
-const createItem = '/api/item';
-const getItem = '/api/item/:id';
-const searchItems = '/api/item/title?/user_id?';
-const deleteItem = '/api/item/:id';
-const updateItem = '/api/item/:id';
-const uploadItemImage = '/api/item/:id/image';
-const removeItemImage = '/api/item/:id/image';
+const createItem = "/api/item";
+const getItem = "/api/item/:id";
+const searchItems = "/api/items";
+const deleteItem = "/api/item/:id";
+const updateItem = "/api/item/:id";
+const uploadItemImage = "/api/item/:id/image";
+const removeItemImage = "/api/item/:id/image";
 
 module.exports = {
     main,
@@ -29,5 +29,5 @@ module.exports = {
     deleteItem,
     updateItem,
     uploadItemImage,
-    removeItemImage
+    removeItemImage,
 };
