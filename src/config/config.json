@@ -1,0 +1,16 @@
+{
+  "development": {
+    "username": "board-admin",
+    "password": "root",
+    "database": "board-api",
+    "host": "127.0.0.1",
+    "options": { "host": "localhost", "dialect": "mysql" }
+  },
+  "test": {
+    "username": "board-admin-test",
+    "password": "root",
+    "database": "board-api-test",
+    "host": "127.0.0.1",
+    "options": { "host": "localhost", "dialect": "mysql" }
+  }
+}
