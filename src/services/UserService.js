@@ -45,8 +45,8 @@ function UserService() {
         });
     };
 
-    this.findUserByEmailAndPassword = email => {
-        return User.findOne({
+    this.findUserByEmailAndPassword = async email => {
+        return await User.findOne({
             attributes: {
                 include: ['id', 'name', 'password']
             },

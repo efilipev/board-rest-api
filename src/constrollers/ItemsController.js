@@ -16,121 +16,117 @@ const {
     searchItems,
 } = require("../utils/paths");
 
+const {
+    trimBearer,
+    responseWithError
+} = require("../utils/http");
+
 const express = require("express");
-const trimBearer = require("../utils/http");
 
 const router = express.Router();
 const service = new ItemService();
 
-router.get(getItem, (req, res) => {
+router.get(getItem, async (req, res) => {
     const { id } = req.params;
     if (id) {
+        const item = await service.getItemById(id);
+        res.status(200).json(item);
+    } else {
+        responseWithError(404, new NotFoundException(), res);
+    }
+});
+
+router.put(updateItem, async (req, res) => {
+    const auth = trimBearer(req.header("Authorization"));
+    if (!auth) {
+        responseWithError(401, new UnauthorizedException(), res);
+    }
+    const { title, price, id } = req.params;
+    if (!id) {
+        responseWithError(403, new ForbiddenException("Item id is required"), res);
+    }
+    if (!title || !price) {
+        responseWithError(403, new ForbiddenException("Item title, price must be not null"), res);
+    }
+    const result = await service.updateItem(title, price, id);
+    if (result === 1) {
+        res.status(200).json({});
+    } else {
+        responseWithError(404, new NotFoundException(), res);
+    }
+});
+
+router.delete(deleteItem, async (req, res) => {
+    const auth = trimBearer(req.header("Authorization"));
+    if (!auth) {
+        responseWithError(401, new UnauthorizedException(), res);
+    }
+    const { id } = req.params;
+    const result = await service.deleteItem(id);
+    if (result === 1) {
+        res.status(200).json({});
+    } else {
+        responseWithError(404, new NotFoundException(), res);
+    }
+});
+
+router.post(createItem, async (req, res) => {
+    const auth = trimBearer(req.header("Authorization"));
+    if (!auth) {
+        responseWithError(401, new UnauthorizedException(), res);
+    }
+    const item = req.body;
+    if (!item) {
+        responseWithError(403, new ForbiddenException(), res);
+    }
+    if (!item.title || !item.price) {
+        responseWithError(422, new UnsupportedException(item.field, "Title or price is required"), res);
+    }
+    if (!item.user_id) {
+        responseWithError(403, new ForbiddenException(`user_id is required`));
+    }
+    const createdItem = await service.create(item);
+    res.status(200).json(createdItem);
+});
+
+router.post(uploadItemImage, async (req, res) => {
+    const auth = trimBearer(req.header("Authorization"));
+    if (!auth) {
+        responseWithError(401, new UnauthorizedException(), res);
+    }
+    const {id} = req.params;
+    if (!id) {
+        responseWithError(401, new ForbiddenException(), res);
+    }
+    const result = service.uploadItemImage(req.body.file, id);
+    if (result[0] === 1) {
         service.getItemById(id).then((item) => {
             res.status(200).json(item);
         });
     } else {
-        throw new NotFoundException();
+        responseWithError(422,
+            new UnsupportedException("message", `The FIle ${req.body.file} is to big!!!`), res);
     }
 });
 
-router.put(updateItem, (req, res) => {
+router.delete(removeItemImage, async (req, res) => {
     const auth = trimBearer(req.header("Authorization"));
     if (!auth) {
-        throw new UnauthorizedException();
+        responseWithError(401, new UnauthorizedException(), res);
     }
-    const { title, price, id } = req.params;
+    const {id} = req.params;
     if (!id) {
-        throw new ForbiddenException("Item id is required");
+        responseWithError(401, new ForbiddenException(), res);
     }
-    if (!title || !price) {
-        throw new ForbiddenException("Item title, price must be not null");
+    const result = await service.removeItemImage(id);
+    if (result[0] === 1) {
+        res.status(200).json({});
+    } else {
+        responseWithError(404, new NotFoundException(), res);
     }
-    service.updateItem(title, price, id).then((result) => {
-        if (result === 1) {
-            res.status(200).json({});
-        } else {
-            throw new NotFoundException();
-        }
-    });
 });
 
-router.delete(deleteItem, (req, res) => {
-    const auth = trimBearer(req.header("Authorization"));
-    if (!auth) {
-        throw new UnauthorizedException();
-    }
-    const { id } = req.params;
-    service.deleteItem(id).then((result) => {
-        if (result === 1) {
-            res.status(200).json({});
-        } else {
-            throw new NotFoundException();
-        }
-    });
-});
-
-router.post(createItem, (req, res) => {
-    const auth = trimBearer(req.header("Authorization"));
-    if (!auth) {
-        throw new UnauthorizedException();
-    }
-    const item = req.body;
-    if (!item) {
-        throw new ForbiddenException();
-    }
-    if (!item.title || !item.price) {
-        throw new UnsupportedException(item.field, "Title or price is required");
-    }
-    if (!item.user_id) {
-        throw new ForbiddenException(`user_id is required`);
-    }
-    service.create(item).then((item) => {
-        res.status(200).json(item);
-    });
-});
-
-router.post(uploadItemImage, (req, res) => {
-    const auth = trimBearer(req.header("Authorization"));
-    if (!auth) {
-        throw new UnauthorizedException();
-    }
-    const { id } = req.params;
-    if (!id) {
-        throw new ForbiddenException();
-    }
-    service.uploadItemImage(req.body.file, id).then((result) => {
-        if (result[0] === 1) {
-            service.getItemById(id).then((item) => {
-                res.status(200).json(item);
-            });
-        } else {
-            throw new UnsupportedException(
-                "message",
-                `The FIle ${req.body.file} is to big!!!`
-            );
-        }
-    });
-});
-
-router.delete(removeItemImage, (req, res) => {
-    const auth = trimBearer(req.header("Authorization"));
-    if (!auth) {
-        throw new UnauthorizedException();
-    }
-    const { id } = req.params;
-    if (!id) {
-        throw new ForbiddenException();
-    }
-    service.removeItemImage(id).then((result) => {
-        if (result[0] === 1) {
-            res.status(200).json({});
-        } else {
-            throw new NotFoundException();
-        }
-    });
-});
-
-router.get(searchItems, (req, res, next) => {
+router.get(searchItems, async (req, res, next) => {
     let order_by = "create_at" || "price";
     let order_type = "desc" || "asc";
     const { title } = req.query;
@@ -146,9 +142,8 @@ router.get(searchItems, (req, res, next) => {
     if (!title) {
         next();
     } else {
-        service.searchItems(title, order_by, order_type).then((result) => {
-            res.status(200).json(result);
-        });
+        const result = await service.searchItems(title, order_by, order_type);
+        res.status(200).json(result);
     }
 });
 

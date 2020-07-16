@@ -2,6 +2,7 @@ const {
     UnsupportedException,
     UnauthorizedException,
     NotFoundException,
+    ErrorHandler
 } = require("../exceptions");
 
 const {
@@ -18,128 +19,119 @@ const {
     searchUsers,
 } = require("../utils/paths");
 
+const {
+    trimBearer,
+    responseWithError
+} = require("../utils/http");
+
 const { UserService } = require("../services");
 const express = require("express");
-const trimBearer = require("../utils/http");
 
 const router = express.Router();
 const service = new UserService();
 
-router.post(login, (req, res, next) => {
-    if (Object.keys(req.body).length !== 0) {
-        const user = req.body;
-        if ( user.email && user.password ) {
-            service.findUserByEmailAndPassword(user.email)
-                .then( result => {
-                    BcryptPasswordService.comparePassword(user.password, result.password)
-                        .then( (passed) => {
-                            if (passed) {
-                                const token = JwtTokenService.createToken({
-                                    created: new Date(),
-                                    id: result.id,
-                                    user: result.username,
-                                    role: "user",
-                                });
-                                res.status(200).json({ token: token });
-                            } else {
-                                next(new UnsupportedException("password", "Wrong email or password"));
-                            }
-                        });
-                });
-        }
-    } else {
-        next(new UnsupportedException("password", "Wrong email or password"));
+router.post(login, async (req, res, next) => {
+    if (Object.keys(req.body).length === 0) {
+        responseWithError(422, new UnsupportedException('password', "Wrong email or password"), res);
     }
-});
-
-router.post(register, function (req, res) {
-    if (Object.keys(req.body).length !== 0) {
-        const user = req.body;
-        if (user) {
-            BcryptPasswordService.generate(user.password);
-            const token = JwtTokenService.createToken({
-                created: new Date(),
-                id: user.id,
-                user: user.name,
-                role: "user",
-            });
-            service.create.call(this, user);
-            res.status(200).json({ token: token });
-        } else {
-            throw new UnsupportedException(user.password, "Wrong current password");
+    const user = req.body;
+    if (user.email && user.password) {
+        const currentUser = await service.findUserByEmailAndPassword(user.email);
+        const passed = await BcryptPasswordService.comparePassword(user.password, currentUser.password);
+        if (!passed) {
+            responseWithError(422, new UnsupportedException('password', "Wrong email or password"), res);
         }
-    }
-});
-
-router.get(currentUser, (req, res) => {
-    const token = trimBearer(req.header("Authorization"));
-    const decodedToken = JwtTokenService.decodeToken(token);
-    service
-        .findUserByName(decodedToken.user)
-        .then((user) => {
-            res.status(200).json(user);
-        })
-        .catch(() => {
-            throw new UnauthorizedException();
+        const token = JwtTokenService.createToken({
+            created: new Date(),
+            id: currentUser.id,
+            user: currentUser.username,
+            role: "user",
         });
+        res.status(200).json({ token: token });
+    }
 });
 
-router.put(updateUser, (req, res, next) => {
+router.post(register, async (req, res) => {
+    if (Object.keys(req.body).length === 0) {
+        responseWithError(422, new UnsupportedException('password', "Wrong email or password"), res);
+    }
+    const user = req.body;
+    if (user) {
+        await BcryptPasswordService.generate(user.password);
+        const token = JwtTokenService.createToken({
+            created: new Date(),
+            id: user.id,
+            user: user.name,
+            role: "user",
+        });
+        await service.create.call(this, user);
+        res.status(200).json({ token: token });
+    } else {
+        responseWithError(422, new UnsupportedException(user.password, "Wrong current password"), res);
+    }
+});
+
+router.get(currentUser, async (req, res) => {
+    const token = trimBearer(req.header("Authorization"));
+    if (!token) {
+        responseWithError(401, new UnauthorizedException(), res);
+    }
+    const decodedToken = JwtTokenService.decodeToken(token);
+    const user = await service.findUserByName(decodedToken.user);
+    res.status(200).json(user);
+});
+
+router.put(updateUser, async (req, res, next) => {
     const auth = trimBearer(req.header("Authorization"));
     const decodedToken = JwtTokenService.decodeToken(auth);
     const updatedUser = req.body;
     if (!auth) {
-        throw new UnauthorizedException();
+        responseWithError(401, new UnauthorizedException(), res);
     }
     if (!updatedUser) {
         next();
     }
     if (!updatedUser.current_password  && !updatedUser.new_password) {
-        throw new UnsupportedException(updatedUser.current_password, 'Current password is required or provide a new_password');
+        responseWithError(422,
+            new UnsupportedException('password', 'Current password is required or provide a new_password'), res);
     }
     if (updatedUser.new_password) {
-        BcryptPasswordService.generate(updatedUser.new_password);
-        service.updateUser(decodedToken.id, updatedUser).then((user) => {
-            res.status(200).json(user);
-        }).catch( () => new UnsupportedException());
+        await BcryptPasswordService.generate(updatedUser.new_password);
+        const user = await service.updateUser(decodedToken.id, updatedUser);
+        res.status(200).json(user);
     } else {
-        service.updateUser(decodedToken.id, updatedUser).then((user) => {
-            res.status(200).json(user);
-        }).catch( () => new UnsupportedException());
+        const user = service.updateUser(decodedToken.id, updatedUser);
+        res.status(200).json(user);
     }
 });
 
-router.get(getUserById, (req, res, next) => {
-    const { id } = req.params;
+router.get(getUserById, async (req, res, next) => {
+    const {id} = req.params;
     if (!req.params) {
         next();
     }
     if (id) {
-        service.findUserById(id).then((user) => {
-            res.status(200).json(user);
-        });
+        const user = await service.findUserById(id);
+        res.status(200).json(user);
     } else {
-        throw new NotFoundException();
+        responseWithError(404, new NotFoundException(), res);
     }
 });
 
-router.get(searchUsers, (req, res, next) => {
+router.get(searchUsers, async (req, res, next) => {
     const { name, email } = req.query;
     if (!req.query) {
         next();
     }
     if (name && email) {
-        service.searchUser({ name, email }).then((user) => {
-            res.status(200).json(user);
-        });
+        const user = await service.searchUser({ name, email });
+        res.status(200).json(user);
     } else if (name) {
-        service.searchUser({ name }).then((user) => {
-            res.status(200).json(user);
-        });
+        const user = await service.searchUser({ name });
+        res.status(200).json(user);
     } else if (email) {
-        service.searchUser({ email }).then((user) => {
-            res.status(200).json(user);
-        });
+        const user = await service.searchUser({ email });
+        res.status(200).json(user);
     } else {
         res.status(200).json([]);
     }

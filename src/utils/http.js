@@ -3,4 +3,11 @@ const trimBearer = authorization => {
     return authorization.slice(6);
 };
 
-module.exports = trimBearer;
+const responseWithError = (code, err, res) => {
+    return res.status(code).json(err);
+};
+
+module.exports = {
+    trimBearer,
+    responseWithError
+};

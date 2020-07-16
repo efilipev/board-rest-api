@@ -1,7 +1,7 @@
 const util = require("util");
 
 function UnsupportedException(field, message) {
-    this.status = 422;
+    this.statusCode = 422;
     this.field = field;
     this.message = message;
     Error.captureStackTrace(this, UnsupportedException);
