@@ -1,6 +1,6 @@
-const trimBearer = authorization => {
-    if ( !authorization ) return;
-    return authorization.slice(6);
+const trimBearer = req => {
+    if (!req.headers.authorization) return;
+    return req.headers.authorization.split(' ')[1];
 };
 
 const responseWithError = (code, err, res) => {

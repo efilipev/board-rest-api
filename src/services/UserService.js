@@ -1,5 +1,7 @@
 const BaseService = require("../services/BaseService");
 const BcryptPasswordService = require("../services/BcryptPasswordService");
+const { UnsupportedException, NotFoundException } = require('../exceptions');
+const { responseWithError } = require('../utils/http');
 const { User } = require("../db/models");
 
 function UserService() {
@@ -12,8 +14,8 @@ function UserService() {
         });
     };
 
-    this.findUserById = id => {
-        return User.findOne({
+    this.findUserById = async (id) => {
+        return await User.findOne({
             attributes: {
                 exclude: ['password']
             },
@@ -45,7 +47,7 @@ function UserService() {
         });
     };
 
-    this.findUserByEmailAndPassword = async email => {
+    this.findByUseremail = async (email) => {
         return await User.findOne({
             attributes: {
                 include: ['id', 'name', 'password']

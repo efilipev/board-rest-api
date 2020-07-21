@@ -9,7 +9,7 @@ const searchUsers = "/api/user";
 
 const createItem = "/api/item";
 const getItem = "/api/item/:id";
-const searchItems = "/api/items";
+const searchItems = "/api/item";
 const deleteItem = "/api/item/:id";
 const updateItem = "/api/item/:id";
 const uploadItemImage = "/api/item/:id/image";

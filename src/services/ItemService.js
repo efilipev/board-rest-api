@@ -3,7 +3,7 @@ const { Item, User } = require("../db/models");
 
 function ItemService() {
     this.create = (item) => {
-        return Item.create(item).then((item) => item.toJSON());
+        return Item.create(item);
     };
 
     this.getItemById = (id) => {
@@ -23,7 +23,56 @@ function ItemService() {
     this.updateItem = (title, price, id) => {
         return Item.update(
             {
+                title: title || null,
+                price: price || null,
+            },
+            {
+                where: {
+                    id: id,
+                },
+            }
+        ).then( () => Item.findOne(
+            {
+                where: {
+                    title: title || null,
+                    price: price || null
+                },
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+                    },
+                ]}
+            ));
+    };
+
+    this.updateItemByTitle = (title, id) => {
+        return Item.update(
+            {
                 title: title,
+            },
+            {
+                where: {
+                    id: id,
+                },
+            }
+        ).then( () => Item.findOne(
+            {
+                where: {
+                    title: title,
+                },
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+                    },
+                ]}
+        ));
+    };
+
+    this.updateItemByPrice = (price, id) => {
+        return Item.update(
+            {
                 price: price,
             },
             {
@@ -31,8 +80,20 @@ function ItemService() {
                     id: id,
                 },
             }
-        );
+        ).then( () => Item.findOne(
+            {
+                where: {
+                    price: price,
+                },
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+                    },
+                ]}
+        ));
     };
+
     this.deleteItem = (id) => {
         return Item.destroy({
             where: {
