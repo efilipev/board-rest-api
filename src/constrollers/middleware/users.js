@@ -78,9 +78,8 @@ const withGetId = () => {
 
 const withUserQuery = () => {
     return (req, res, next) => {
-        const { name, email } = req.query;
         if (req.query) {
-            next(name, email);
+            next();
         } else {
             return responseWithError(422, new UnsupportedException('name or email', 'Wrong user name or email'), res);
         }
@@ -91,7 +90,7 @@ const withDecodeToken = () => {
     return async (token, req, res, next) => {
         const decodedToken = await JwtTokenService.decodeToken(token);
         if (decodedToken) {
-            next(req.body, decodedToken);
+            next(decodedToken);
         } else {
             return responseWithError(422, new UnsupportedException('Wrong current password'), res);
         }
@@ -141,7 +140,8 @@ const withFindByUserId = () => {
 };
 
 const withUpdateUser = () => {
-    return async (updatedUser, decodedToken, req, res, next) => {
+    return async (decodedToken, req, res, next) => {
+        const updatedUser = req.body;
         if (!updatedUser) {
             return responseWithError(422, new UnsupportedException('password', 'Wrong current email or password'), res);
         }
@@ -152,27 +152,48 @@ const withUpdateUser = () => {
         if (updatedUser.new_password) {
             await BcryptPasswordService.generate(updatedUser.new_password);
             const user = await service.updateUser(decodedToken.id, updatedUser);
-            next(user);
+            if (user) {
+                next(user);
+            } else {
+                return responseWithError(404, new NotFoundException(), res);
+            }
         } else {
             const user = await service.updateUser(decodedToken.id, updatedUser);
-            next(user);
+            if (user) {
+                next(user);
+            } else {
+                return responseWithError(404, new NotFoundException(), res);
+            }
         }
     }
 };
 
 const withSearchUser = () => {
-    return async (name, email, req, res, next) => {
+    return async (req, res, next) => {
+        const {name, email} = req.query;
         if (name && email) {
-            const user = await service.searchUser({ name, email });
-            next(user);
-        } else if (name) {
-            const user = await service.searchUser({ name });
-            next(user);
-        } else if (email) {
-            const user = await service.searchUser({ email });
-            next(user);
-        } else {
-            next([]);
+            const user = await service.searchUser({name, email});
+            if (user) {
+                next(user);
+            } else {
+                next([]);
+            }
+        }
+        if (name) {
+            const user = await service.searchUser({name});
+            if (user) {
+                next(user);
+            } else {
+                next([]);
+            }
+        }
+        if (email) {
+            const user = await service.searchUser({email});
+            if (user) {
+                next(user);
+            } else {
+                next([]);
+            }
         }
     }
 };

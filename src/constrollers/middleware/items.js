@@ -67,7 +67,7 @@ const withUpdateItem = () => {
             if (updatedItem) {
                 next(updatedItem);
             } else {
-                responseWithError(404, {}, res);
+                return responseWithError(404, {}, res);
             }
         }
         if((!title || title.length < 3)) {
@@ -157,7 +157,7 @@ const withDeleteItem = () => {
 
 const withSearchItems = () => {
     return async (req, res, next) => {
-        let order_by = "create_at" || "price";
+        let order_by = "created_at" || "price";
         let order_type = "desc" || "asc";
         const {title} = req.query;
         if (!title) {
