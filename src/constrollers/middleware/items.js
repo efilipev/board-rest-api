@@ -7,9 +7,17 @@ const {
     UnsupportedException,
 } = require('../../exceptions');
 
-const { ItemService } = require('../../services');
+const {
+    ItemService,
+    JwtTokenService
+} = require('../../services');
 
 const service = new ItemService();
+
+const createItemSchema = Joi.object({
+    title: Joi.string().min(4).required(),
+    price: Joi.number().required()
+});
 
 const withGetItemId = () => {
     return async (req, res, next) => {
@@ -72,17 +80,19 @@ const withUpdateItem = () => {
 
 const withCreateItem = () => {
     return async (token, req, res, next) => {
-        if (Object.keys(req.body).length === 0) {
-            return responseWithError(403, new ForbiddenException('Item is not defined'), res);
+        const {title, price} = req.body;
+        const {error} = createItemSchema.validate({title, price});
+        const valid = error == null;
+        if (!valid) {
+            return responseWithError(422, new UnsupportedException(error.stack, error.message), res);
         }
-        const item = req.body;
-        if (!item.title || !item.price || !item.created_at) {
-            return responseWithError(422, new UnsupportedException(item.field, "Title or price is required"), res);
-        }
-        if (!item.user_id) {
-            return responseWithError(422, new UnsupportedException(`user_id is required`), res);
-        }
-        const createdItem = await service.create(item);
+        const decodedToken = JwtTokenService.decodeToken(token);
+        const createdItem = await service.create(Object.assign({}, {
+            created_at: new Date(),
+            title: title,
+            price: price,
+            user_id: decodedToken.id
+        }));
         if (createdItem) {
             next(createdItem);
         } else {

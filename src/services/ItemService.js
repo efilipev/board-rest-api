@@ -3,7 +3,17 @@ const { Item, User } = require("../db/models");
 
 function ItemService() {
     this.create = (item) => {
-        return Item.create(item);
+        return Item.create(item).then( () => Item.findOne({
+            where: {
+                created_at: item.created_at
+            },
+            include: [
+                {
+                    model: User,
+                    as: "user",
+                },
+            ],
+        }));
     };
 
     this.getItemById = (id) => {
