@@ -96,7 +96,7 @@ const withCreateItem = () => {
         if (createdItem) {
             next(createdItem);
         } else {
-            return responseWithError(404, new NotFoundException(), res);
+            return responseWithError(403, new ForbiddenException(), res);
         }
     }
 };
