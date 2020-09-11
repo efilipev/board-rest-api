@@ -1,6 +1,6 @@
 # board-rest-api
 
-Technologies: NodeJs, Express, Sequelize
+Technologies: NodeJs, Express, Sequelize, MySql
 
 Description:
 
