@@ -1,10 +1,7 @@
 # board-rest-api
 
-Technologies: JavaScript, NodeJs, Express, Sequelize, MySql, Joi, Bcrypt
-
-Description:
-
-REST API for the site "Notice board"
+Project Description: 
+REST API for the site "Notice board".
 On the site, users post products that they would like to sell. Key features:
 - Authorization 
 - Registration 
@@ -14,3 +11,6 @@ On the site, users post products that they would like to sell. Key features:
 - Upload / Delete an image for a product 
 - User search 
 - Creation / Editing / Deletion of goods by an authorized user 
+
+Technologies: JavaScript, NodeJs, Express, Sequelize, MySql, Joi, Bcrypt
+
