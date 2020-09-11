@@ -1,6 +1,7 @@
 # board-rest-api
 
-Project Description: 
+Project Description:
+
 REST API for the site "Notice board".
 On the site, users post products that they would like to sell. Key features:
 - Authorization 
