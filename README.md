@@ -1,6 +1,9 @@
 # board-rest-api
 
-Project Description:
+## Role: NodeJs Developer 
+March 2020
+
+## Project Description:
 
 REST API for the site "Notice board".
 On the site, users post products that they would like to sell. Key features:
@@ -13,5 +16,9 @@ On the site, users post products that they would like to sell. Key features:
 - User search 
 - Creation / Editing / Deletion of goods by an authorized user 
 
-Technologies: JavaScript, NodeJs, Express, Sequelize, MySql, Joi, Bcrypt
+## Responsibilities:
+  - Developed project on it's own
+
+## Technologies: 
+  - JavaScript, NodeJs, Express, Sequelize, MySql, Joi, Bcrypt
 
